@@ -1,23 +1,20 @@
-'use strict';
+
 /**
  * [stdout description]
  * @param  {[type]} data [description]
  * @param  {[type]} bit  [description]
  * @return {[type]}      [description]
  */
-function stdout(data, bit){
+function stdout(data, bit) {
   bit = bit || 8;
-  for(var i=0;i < data.length;i+= bit){
-    var arr = [];
-    for(var j=0;j<bit && i+j<data.length;j++) 
-      arr.push(data[i + j]);
-    arr = arr.map(function(b){
-      return b.toString(16).toUpperCase()
-    }).map(function(b){
-      if(b.length == 1) b = '0' + b;
+  for (let i = 0; i < data.length; i += bit) {
+    let arr = [];
+    for (let j = 0; j < bit && i + j < data.length; j++) { arr.push(data[i + j]); }
+    arr = arr.map(b => b.toString(16).toUpperCase()).map((b) => {
+      if (b.length == 1) b = `0${b}`;
       return b;
-    })
-    
+    });
+
     console.log(arr.join(' '));
   }
   console.log();
@@ -26,15 +23,15 @@ function stdout(data, bit){
 /**
  * [Console description]
  */
-function Console(handler){
+function Console(handler) {
   this.handler = handler || stdout;
-};
+}
 /**
  * [open description]
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-Console.prototype.open = function(callback){
+Console.prototype.open = function (callback) {
   callback && callback();
 };
 /**
@@ -43,7 +40,7 @@ Console.prototype.open = function(callback){
  * @param  {[type]} bit  [description]
  * @return {[type]}      [description]
  */
-Console.prototype.write = function(data){
+Console.prototype.write = function (data) {
   this.handler && this.handler(data);
 };
 

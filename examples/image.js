@@ -1,28 +1,24 @@
-'use strict';
+
 const escpos = require('../');
 
-const device  = new escpos.USB();
+const device = new escpos.USB();
 const printer = new escpos.Printer(device);
 
-escpos.Image.load(__dirname + '/tux.png', function(image){
-
-  device.open(function(){
-
+escpos.Image.load(`${__dirname}/tux.png`, (image) => {
+  device.open(() => {
     printer
-    .align('ct')
+      .align('ct')
 
-    .image(image, 's8')
-    .image(image, 'd8')
-    .image(image, 's24')
-    .image(image, 'd24')
-    
-    .raster(image)
-    .raster(image, 'dw')
-    .raster(image, 'dh')
-    .raster(image, 'dwdh')
+      .image(image, 's8')
+      .image(image, 'd8')
+      .image(image, 's24')
+      .image(image, 'd24')
 
-    .cut();
-  
+      .raster(image)
+      .raster(image, 'dw')
+      .raster(image, 'dh')
+      .raster(image, 'dwdh')
+
+      .cut();
   });
-
 });

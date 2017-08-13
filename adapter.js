@@ -1,11 +1,11 @@
-'use strict';
-const util         = require('util');
+
+const util = require('util');
 const EventEmitter = require('events');
 
 /**
  * [Adapter description]
  */
-function Adapter(){
+function Adapter() {
   EventEmitter.call(this);
   return this;
 }
@@ -17,7 +17,7 @@ util.inherits(Adapter, EventEmitter);
  * @param  {[type]} ctor [description]
  * @return {[type]}      [description]
  */
-Adapter.extends = function(ctor){
+Adapter.extends = function (ctor) {
   // console.log(ctor);
   util.inherits(ctor, Adapter);
   return ctor;

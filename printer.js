@@ -1,28 +1,28 @@
-'use strict';
-const util         = require('util');
-const qr           = require('qr-image');
-const iconv        = require('iconv-lite');
-const getPixels    = require('get-pixels');
-const Buffer       = require('mutable-buffer');
+
+const util = require('util');
+const qr = require('qr-image');
+const iconv = require('iconv-lite');
+const getPixels = require('get-pixels');
+const Buffer = require('mutable-buffer');
 const EventEmitter = require('events');
-const Image        = require('./image');
-const utils        = require('./utils');
-const _            = require('./commands');
+const Image = require('./image');
+const utils = require('./utils');
+const _ = require('./commands');
 
 /**
  * [function ESC/POS Printer]
  * @param  {[Adapter]} adapter [eg: usb, network, or serialport]
  * @return {[Printer]} printer  [the escpos printer instance]
  */
-function Printer(adapter){
+function Printer(adapter) {
   if (!(this instanceof Printer)) {
     return new Printer(adapter);
   }
-  var self = this;
+  const self = this;
   EventEmitter.call(this);
   this.adapter = adapter;
   this.buffer = new Buffer();
-};
+}
 
 /**
  * Printer extends EventEmitter
@@ -34,7 +34,7 @@ util.inherits(Printer, EventEmitter);
  * @param  {[String]} size
  * @return printer instance
  */
-Printer.prototype.marginBottom = function(size){
+Printer.prototype.marginBottom = function (size) {
   this.buffer.write(_.MARGINS.BOTTOM);
   this.buffer.writeUInt8(size);
   return this;
@@ -45,7 +45,7 @@ Printer.prototype.marginBottom = function(size){
  * @param  {[String]} size
  * @return printer instance
  */
-Printer.prototype.marginLeft = function(size){
+Printer.prototype.marginLeft = function (size) {
   this.buffer.write(_.MARGINS.LEFT);
   this.buffer.writeUInt8(size);
   return this;
@@ -56,7 +56,7 @@ Printer.prototype.marginLeft = function(size){
  * @param  {[String]} size
  * @return printer instance
  */
-Printer.prototype.marginRight = function(size){
+Printer.prototype.marginRight = function (size) {
   this.buffer.write(_.MARGINS.RIGHT);
   this.buffer.writeUInt8(size);
   return this;
@@ -67,8 +67,8 @@ Printer.prototype.marginRight = function(size){
  * @param  {Function} callback
  * @return printer instance
  */
-Printer.prototype.flush = function(callback){
-  var buf = this.buffer.flush();
+Printer.prototype.flush = function (callback) {
+  const buf = this.buffer.flush();
   this.adapter.write(buf, callback);
   return this;
 };
@@ -78,7 +78,7 @@ Printer.prototype.flush = function(callback){
  * @param  {[String]}  encoding [description]
  * @return printer instance
  */
-Printer.prototype.print = function(content){
+Printer.prototype.print = function (content) {
   this.buffer.write(content);
   return this;
 };
@@ -88,8 +88,8 @@ Printer.prototype.print = function(content){
  * @param  {[String]}  encoding [description]
  * @return printer instance
  */
-Printer.prototype.println = function(content){
-  return this.print([ content, _.EOL ].join(''));
+Printer.prototype.println = function (content) {
+  return this.print([content, _.EOL].join(''));
 };
 
 /**
@@ -98,7 +98,7 @@ Printer.prototype.println = function(content){
  * @param  {[String]}  encoding [description]
  * @return printer instance
  */
-Printer.prototype.text = function(content, encoding){
+Printer.prototype.text = function (content, encoding) {
   return this.print(iconv.encode(content + _.EOL, encoding || 'GB18030'));
 };
 
@@ -117,9 +117,9 @@ Printer.prototype.feed = function (n) {
  * @param  {[type]}    ctrl     [description]
  * @return printer instance
  */
-Printer.prototype.control = function(ctrl){
+Printer.prototype.control = function (ctrl) {
   this.buffer.write(_.FEED_CONTROL_SEQUENCES[
-    'CTL_' + ctrl.toUpperCase()
+    `CTL_${ctrl.toUpperCase()}`
   ]);
   return this;
 };
@@ -128,9 +128,9 @@ Printer.prototype.control = function(ctrl){
  * @param  {[type]}    align    [description]
  * @return printer instance
  */
-Printer.prototype.align = function(align){
+Printer.prototype.align = function (align) {
   this.buffer.write(_.TEXT_FORMAT[
-    'TXT_ALIGN_' + align.toUpperCase()
+    `TXT_ALIGN_${align.toUpperCase()}`
   ]);
   return this;
 };
@@ -139,9 +139,9 @@ Printer.prototype.align = function(align){
  * @param  {[type]}    family  [description]
  * @return {[Printer]} printer [description]
  */
-Printer.prototype.font = function(family){
+Printer.prototype.font = function (family) {
   this.buffer.write(_.TEXT_FORMAT[
-    'TXT_FONT_' + family.toUpperCase()
+    `TXT_FONT_${family.toUpperCase()}`
   ]);
   return this;
 };
@@ -150,9 +150,8 @@ Printer.prototype.font = function(family){
  * @param  {[type]}    type     [description]
  * @return printer instance
  */
-Printer.prototype.style = function(type){
-  switch(type.toUpperCase()){
-
+Printer.prototype.style = function (type) {
+  switch (type.toUpperCase()) {
     case 'B':
       this.buffer.write(_.TEXT_FORMAT.TXT_BOLD_ON);
       this.buffer.write(_.TEXT_FORMAT.TXT_ITALIC_OFF);
@@ -216,7 +215,6 @@ Printer.prototype.style = function(type){
       this.buffer.write(_.TEXT_FORMAT.TXT_ITALIC_OFF);
       this.buffer.write(_.TEXT_FORMAT.TXT_UNDERL_OFF);
       break;
-
   }
   return this;
 };
@@ -227,14 +225,14 @@ Printer.prototype.style = function(type){
  * @param  {[String]}  height  [description]
  * @return {[Printer]} printer [description]
  */
-Printer.prototype.size = function(width, height) {
-  if (2 >= width && 2 >= height) {
+Printer.prototype.size = function (width, height) {
+  if (width <= 2 && height <= 2) {
     this.buffer.write(_.TEXT_FORMAT.TXT_NORMAL);
-    if (2 == width && 2 == height) {
+    if (width == 2 && height == 2) {
       this.buffer.write(_.TEXT_FORMAT.TXT_4SQUARE);
-    } else if (1 == width && 2 == height) {
+    } else if (width == 1 && height == 2) {
       this.buffer.write(_.TEXT_FORMAT.TXT_2HEIGHT);
-    } else if (2 == width && 1 == height) {
+    } else if (width == 2 && height == 1) {
       this.buffer.write(_.TEXT_FORMAT.TXT_2WIDTH);
     }
   } else {
@@ -248,7 +246,7 @@ Printer.prototype.size = function(width, height) {
  * @param  {[type]} n [description]
  * @return {[type]}   [description]
  */
-Printer.prototype.lineSpace = function(n) {
+Printer.prototype.lineSpace = function (n) {
   if (n === undefined || n === null) {
     this.buffer.write(_.LINE_SPACING.LS_DEFAULT);
   } else {
@@ -263,8 +261,8 @@ Printer.prototype.lineSpace = function(n) {
  * @param  {[type]}    hw       [description]
  * @return printer instance
  */
-Printer.prototype.hardware = function(hw){
-  this.buffer.write(_.HARDWARE[ 'HW_'+ hw ]);
+Printer.prototype.hardware = function (hw) {
+  this.buffer.write(_.HARDWARE[`HW_${hw}`]);
   return this.flush();
 };
 /**
@@ -277,10 +275,11 @@ Printer.prototype.hardware = function(hw){
  * @param  {[type]}    font     [description]
  * @return printer instance
  */
-Printer.prototype.barcode = function(code, type, width, height, position, font){
+Printer.prototype.barcode = function (code, type, width, height, position, font) {
   type = type || 'EAN13'; // default type is EAN13, may a good choice ?
-  var convertCode = String(code), parityBit = '';
-  if(typeof type === 'undefined' || type === null){
+  let convertCode = String(code),
+    parityBit = '';
+  if (typeof type === 'undefined' || type === null) {
     throw new TypeError('barcode type is required');
   }
   if (type === 'EAN13' && convertCode.length != 12) {
@@ -289,24 +288,24 @@ Printer.prototype.barcode = function(code, type, width, height, position, font){
   if (type === 'EAN8' && convertCode.length != 7) {
     throw new Error('EAN8 Barcode type requires code length 7');
   }
-  if(width >= 2 || width <= 6){
+  if (width >= 2 || width <= 6) {
     this.buffer.write(_.BARCODE_FORMAT.BARCODE_WIDTH[width]);
-  }else{
+  } else {
     this.buffer.write(_.BARCODE_FORMAT.BARCODE_WIDTH_DEFAULT);
   }
-  if(height >=1  || height <= 255){
+  if (height >= 1 || height <= 255) {
     this.buffer.write(_.BARCODE_FORMAT.BARCODE_HEIGHT(height));
-  }else{
+  } else {
     this.buffer.write(_.BARCODE_FORMAT.BARCODE_HEIGHT_DEFAULT);
   }
   this.buffer.write(_.BARCODE_FORMAT[
-    'BARCODE_FONT_' + (font || 'A').toUpperCase()
+    `BARCODE_FONT_${(font || 'A').toUpperCase()}`
   ]);
   this.buffer.write(_.BARCODE_FORMAT[
-    'BARCODE_TXT_' + (position || 'BLW').toUpperCase()
+    `BARCODE_TXT_${(position || 'BLW').toUpperCase()}`
   ]);
   this.buffer.write(_.BARCODE_FORMAT[
-    'BARCODE_' + ((type || 'EAN13').replace('-', '_').toUpperCase())
+    `BARCODE_${(type || 'EAN13').replace('-', '_').toUpperCase()}`
   ]);
   if (type === 'EAN13' || type === 'EAN8') {
     parityBit = utils.getParityBit(code);
@@ -323,12 +322,12 @@ Printer.prototype.barcode = function(code, type, width, height, position, font){
  * @param  {[type]} size    [description]
  * @return {[type]}         [description]
  */
-Printer.prototype.qrcode = function(code, version, level, size){
+Printer.prototype.qrcode = function (code, version, level, size) {
   this.buffer.write(_.CODE2D_FORMAT.TYPE_QR);
   this.buffer.write(_.CODE2D_FORMAT.CODE2D);
   this.buffer.writeUInt8(version || 3);
   this.buffer.write(_.CODE2D_FORMAT[
-    'QR_LEVEL_' + (level || 'L').toUpperCase()
+    `QR_LEVEL_${(level || 'L').toUpperCase()}`
   ]);
   this.buffer.writeUInt8(size || 6);
   this.buffer.writeUInt16LE(code.length);
@@ -343,17 +342,17 @@ Printer.prototype.qrcode = function(code, version, level, size){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-Printer.prototype.qrimage = function(content, options, callback){
-  var self = this;
-  if(typeof options == 'function'){
+Printer.prototype.qrimage = function (content, options, callback) {
+  const self = this;
+  if (typeof options === 'function') {
     callback = options;
     options = null;
   }
   options = options || { type: 'png', mode: 'dhdw' };
-  var buffer = qr.imageSync(content, options);
-  var type = [ 'image', options.type ].join('/');
-  getPixels(buffer, type, function (err, pixels) {
-    if(err) return callback && callback(err);
+  const buffer = qr.imageSync(content, options);
+  const type = ['image', options.type].join('/');
+  getPixels(buffer, type, (err, pixels) => {
+    if (err) return callback && callback(err);
     self.raster(new Image(pixels), options.mode);
     callback && callback.call(self, null, self);
   });
@@ -366,16 +365,15 @@ Printer.prototype.qrimage = function(content, options, callback){
  * @param  {[type]} density [description]
  * @return {[type]}         [description]
  */
-Printer.prototype.image = function(image, density){
-  if(!(image instanceof Image))
-    throw new TypeError('Only escpos.Image supported');
+Printer.prototype.image = function (image, density) {
+  if (!(image instanceof Image)) { throw new TypeError('Only escpos.Image supported'); }
   density = density || 'd24';
-  var n = !!~[ 'd8', 's8' ].indexOf(density) ? 1 : 3;
-  var header = _.BITMAP_FORMAT['BITMAP_' + density.toUpperCase()];
-  var bitmap = image.toBitmap(n * 8);
-  var self = this;
+  const n = ~['d8', 's8'].indexOf(density) ? 1 : 3;
+  const header = _.BITMAP_FORMAT[`BITMAP_${density.toUpperCase()}`];
+  const bitmap = image.toBitmap(n * 8);
+  const self = this;
   this.lineSpace(0); // set line spacing to 0
-  bitmap.data.forEach(function (line) {
+  bitmap.data.forEach((line) => {
     self.buffer.write(header);
     self.buffer.writeUInt16LE(line.length / n);
     self.buffer.write(line);
@@ -392,14 +390,13 @@ Printer.prototype.image = function(image, density){
  * @return {[type]}       [description]
  */
 Printer.prototype.raster = function (image, mode) {
-  if(!(image instanceof Image))
-    throw new TypeError('Only escpos.Image supported');
+  if (!(image instanceof Image)) { throw new TypeError('Only escpos.Image supported'); }
   mode = mode || 'normal';
   if (mode === 'dhdw' ||
-      mode === 'dwh'  ||
+      mode === 'dwh' ||
       mode === 'dhw') mode = 'dwdh';
-  var raster = image.toRaster();
-  var header = _.GSV0_FORMAT['GSV0_' + mode.toUpperCase()];
+  const raster = image.toRaster();
+  const header = _.GSV0_FORMAT[`GSV0_${mode.toUpperCase()}`];
   this.buffer.write(header);
   this.buffer.writeUInt16LE(raster.width);
   this.buffer.writeUInt16LE(raster.height);
@@ -412,7 +409,7 @@ Printer.prototype.raster = function (image, mode) {
  * @param  {[type]} part [description]
  * @return printer instance
  */
-Printer.prototype.cut = function(part, feed){
+Printer.prototype.cut = function (part, feed) {
   this.feed(feed || 3);
   this.buffer.write(_.PAPER[
     part ? 'PAPER_PART_CUT' : 'PAPER_FULL_CUT'
@@ -425,9 +422,9 @@ Printer.prototype.cut = function(part, feed){
  * @param  {[type]} pin [description]
  * @return printer instance
  */
-Printer.prototype.cashdraw = function(pin){
+Printer.prototype.cashdraw = function (pin) {
   this.buffer.write(_.CASH_DRAWER[
-    'CD_KICK_' + (pin || 2)
+    `CD_KICK_${pin || 2}`
   ]);
   return this.flush();
 };
@@ -437,9 +434,9 @@ Printer.prototype.cashdraw = function(pin){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-Printer.prototype.close = function(callback){
-  var self = this;
-  return this.flush(function(){
+Printer.prototype.close = function (callback) {
+  const self = this;
+  return this.flush(() => {
     self.adapter.close(callback);
   });
 };

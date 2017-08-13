@@ -1,13 +1,12 @@
-'use strict';
+
 const getPixels = require('get-pixels');
 
 /**
  * [Image description]
  * @param {[type]} pixels [description]
  */
-function Image(pixels){
-  if(!(this instanceof Image)) 
-    return new Image(pixels);
+function Image(pixels) {
+  if (!(this instanceof Image)) { return new Image(pixels); }
   this.pixels = pixels;
 
   this.data = [];
@@ -16,23 +15,20 @@ function Image(pixels){
       r: pixel[0],
       g: pixel[1],
       b: pixel[2],
-      a: pixel[3]
+      a: pixel[3],
     };
-  };
+  }
 
-  var self = this;
-  for(var i=0;i<this.pixels.data.length;i+=this.size.colors){
-    this.data.push(rgb(new Array(this.size.colors).fill(0).map(function(_, b){
-      return self.pixels.data[ i + b ];
-    })));
-  };
+  const self = this;
+  for (var i = 0; i < this.pixels.data.length; i += this.size.colors) {
+    this.data.push(rgb(new Array(this.size.colors).fill(0).map((_, b) => self.pixels.data[i + b])));
+  }
 
-  this.data = this.data.map(function(pixel){
-    if(pixel.a == 0) return 0;
+  this.data = this.data.map((pixel) => {
+    if (pixel.a == 0) return 0;
     return pixel.r !== 0xFF || pixel.g !== 0xFF || pixel.b !== 0xFF ? 1 : 0;
   });
-
-};
+}
 
 /**
  * [load description]
@@ -41,13 +37,13 @@ function Image(pixels){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-Image.load = function(url, type, callback){
-  if(typeof type == 'function'){
+Image.load = function (url, type, callback) {
+  if (typeof type === 'function') {
     callback = type;
     type = null;
   }
-  getPixels(url, type, function(err, pixels){
-    if(err) return callback(err);
+  getPixels(url, type, (err, pixels) => {
+    if (err) return callback(err);
     callback(new Image(pixels));
   });
 };
@@ -56,9 +52,9 @@ Image.load = function(url, type, callback){
  * [description]
  * @return {[type]}     [description]
  */
-Image.prototype.__defineGetter__('size', function(){
+Image.prototype.__defineGetter__('size', function () {
   return {
-    width : this.pixels.shape[0],
+    width: this.pixels.shape[0],
     height: this.pixels.shape[1],
     colors: this.pixels.shape[2],
   };
@@ -69,22 +65,26 @@ Image.prototype.__defineGetter__('size', function(){
  * @param  {[type]} density [description]
  * @return {[type]}         [description]
  */
-Image.prototype.toBitmap = function(density) {
+Image.prototype.toBitmap = function (density) {
   density = density || 24;
 
-  var ld, result = [];
-  var x, y, b, l, i;
-  var c = density / 8;
+  let ld,
+    result = [];
+  let x,
+    y,
+    b,
+    l,
+    i;
+  const c = density / 8;
 
   // n blocks of lines
-  var n = Math.ceil(this.size.height / density);
+  const n = Math.ceil(this.size.height / density);
 
   for (y = 0; y < n; y++) {
     // line data
     ld = result[y] = [];
 
     for (x = 0; x < this.size.width; x++) {
-
       for (b = 0; b < density; b++) {
         i = x * c + (b >> 3);
 
@@ -104,7 +104,7 @@ Image.prototype.toBitmap = function(density) {
 
   return {
     data: result,
-    density: density
+    density,
   };
 };
 /**
@@ -112,19 +112,21 @@ Image.prototype.toBitmap = function(density) {
  * @return {[type]} [description]
  */
 Image.prototype.toRaster = function () {
-  var result = [];
-  var width  = this.size.width;
-  var height = this.size.height;
-  var data   = this.data;
+  const result = [];
+  const width = this.size.width;
+  const height = this.size.height;
+  const data = this.data;
 
   // n blocks of lines
-  var n = Math.ceil(width / 8);
-  var x, y, b, c, i;
+  const n = Math.ceil(width / 8);
+  let x,
+    y,
+    b,
+    c,
+    i;
 
   for (y = 0; y < height; y++) {
-
     for (x = 0; x < n; x++) {
-
       for (b = 0; b < 8; b++) {
         i = x * 8 + b;
 
@@ -144,9 +146,9 @@ Image.prototype.toRaster = function () {
   return {
     data: result,
     width: n,
-    height: height
+    height,
   };
-}
+};
 
 /**
  * [exports description]
